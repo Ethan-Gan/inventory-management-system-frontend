@@ -171,7 +171,7 @@ const InventoryItems = () => {
     },
     {
       accessorKey: 'technical_reference_url',
-      header: 'Tech Reference',
+      header: 'Technical Reference',
       cell: ({ row, getValue }) => {
         const cellId = `${row.original.id}-technical_reference_url`;
         const isEditing = editingCell === cellId;

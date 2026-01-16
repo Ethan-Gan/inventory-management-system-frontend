@@ -10,7 +10,7 @@ const Login = ({ setAuth }) => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError('Server is waking up... this may take 30 seconds on first request.');
 
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/users/login`, {
