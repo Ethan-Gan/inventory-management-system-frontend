@@ -19,17 +19,20 @@ const Login = ({ setAuth }) => {
         body: JSON.stringify({ username, password }),
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        localStorage.setItem('user', JSON.stringify(data.user));
-        setAuth(data.user); // Tells App.jsx we are logged in
-      } else {
+      if (!response.ok) {
+        const data = await response.json();
         setError(data.message || 'Invalid credentials');
+        setLoading(false);
+        return;
       }
+
+      const data = await response.json();
+      localStorage.setItem('user', JSON.stringify(data.user));
+      setAuth(data.user); // Tells App.jsx we are logged in
+      
     } catch (err) {
+      console.error('Login error:', err);
       setError('Server is waking up... try again in 30 seconds.');
-    } finally {
       setLoading(false);
     }
   };

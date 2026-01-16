@@ -1,47 +1,89 @@
+.dashboard-page {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
 .dashboard-header {
-  background-color: black;
-  color: white;
-  width: 100%;
-  height: 4rem; /* Hard capped */
-  padding: 0 2rem;
-  
-  /* Flexbox settings */
+  background-color: #000;
+  color: #fff;
+  padding: 1rem 2rem;
   display: flex;
-  justify-content: space-between; /* Pushes H1 to left, User Info to right */
-  align-items: center;           /* Centers everything vertically */
-  
-  box-sizing: border-box;        /* Ensures padding doesn't add to height */
-  text-transform: uppercase;
-  font-weight: bold;
-    font-size: 1.5rem;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .dashboard-header h1 {
-  margin: 0;                     /* Remove default margins that cause shifting */
+  margin: 0;
   font-size: 1.5rem;
-  display: flex;
-  align-items: center;
 }
 
 .user-info {
   display: flex;
   align-items: center;
-  gap: 1rem;                     /* Space between "Welcome user" and button */
+  gap: 1rem;
 }
 
 .logout-btn {
-  padding: 0.5rem 1rem;          /* Replaced cqb with rem for stability */
-  font-weight: bold;
+  background-color: #fff;
+  color: #000;
+  border: none;
+  padding: 0.5rem 1rem;
   cursor: pointer;
-  border: 1px solid transparent; 
-  background-color: white;
-  color: black;
-  transition: all 0.2s ease;
-  white-space: nowrap;           /* Prevents "LOG OUT" from breaking into two lines */
+  font-weight: bold;
+  /* border-radius: 4px; */
 }
 
 .logout-btn:hover {
-  background-color: black;
-  color: white;
-  border: 1px solid white;
+  background-color: #e0e0e0;
+}
+
+.dashboard-content {
+  padding: 2rem;
+}
+
+.nav-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.nav-card {
+  background-color: #fff;
+  padding: 2rem;
+  /* border-radius: 8px; */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+  color: #333;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.nav-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  border-color: #000;
+}
+
+.nav-card h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  color: #000;
+}
+
+.nav-card p {
+  margin: 0;
+  color: #666;
+  font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+  .nav-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .dashboard-content {
+    padding: 1rem;
+  }
 }
