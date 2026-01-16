@@ -1,0 +1,47 @@
+.dashboard-header {
+  background-color: black;
+  color: white;
+  width: 100%;
+  height: 4rem; /* Hard capped */
+  padding: 0 2rem;
+  
+  /* Flexbox settings */
+  display: flex;
+  justify-content: space-between; /* Pushes H1 to left, User Info to right */
+  align-items: center;           /* Centers everything vertically */
+  
+  box-sizing: border-box;        /* Ensures padding doesn't add to height */
+  text-transform: uppercase;
+  font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.dashboard-header h1 {
+  margin: 0;                     /* Remove default margins that cause shifting */
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;                     /* Space between "Welcome user" and button */
+}
+
+.logout-btn {
+  padding: 0.5rem 1rem;          /* Replaced cqb with rem for stability */
+  font-weight: bold;
+  cursor: pointer;
+  border: 1px solid transparent; 
+  background-color: white;
+  color: black;
+  transition: all 0.2s ease;
+  white-space: nowrap;           /* Prevents "LOG OUT" from breaking into two lines */
+}
+
+.logout-btn:hover {
+  background-color: black;
+  color: white;
+  border: 1px solid white;
+}
