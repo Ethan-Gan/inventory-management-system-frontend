@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
@@ -7,6 +7,15 @@ import Suppliers from './pages/Suppliers'
 import InventoryItems from './pages/InventoryItems'
 import PurchaseRequests from './pages/PurchaseRequests'
 import InventoryCheckouts from './pages/InventoryCheckouts'
+import Sidebar from './components/Sidebar'
+
+// Wraps a table page with the shortcut sidebar on the left.
+const WithSidebar = ({ children }) => (
+  <div className="app-layout">
+    <Sidebar />
+    <div className="app-content">{children}</div>
+  </div>
+);
 
 function App() {
   // 1. Initialize auth state from LocalStorage (persists on refresh)
@@ -35,26 +44,26 @@ function App() {
           element={user ? <Dashboard user={user} onLogout={handleLogout} /> : <Navigate to="/login" />} 
         />
 
-        {/* Table Pages - All Protected */}
+        {/* Table Pages - All Protected, wrapped with the shortcut sidebar */}
         <Route 
           path="/users" 
-          element={user ? <Users /> : <Navigate to="/login" />} 
+          element={user ? <WithSidebar><Users /></WithSidebar> : <Navigate to="/login" />} 
         />
         <Route 
           path="/suppliers" 
-          element={user ? <Suppliers /> : <Navigate to="/login" />} 
+          element={user ? <WithSidebar><Suppliers /></WithSidebar> : <Navigate to="/login" />} 
         />
         <Route 
           path="/inventory-items" 
-          element={user ? <InventoryItems /> : <Navigate to="/login" />} 
+          element={user ? <WithSidebar><InventoryItems /></WithSidebar> : <Navigate to="/login" />} 
         />
         <Route 
           path="/purchase-requests" 
-          element={user ? <PurchaseRequests /> : <Navigate to="/login" />} 
+          element={user ? <WithSidebar><PurchaseRequests /></WithSidebar> : <Navigate to="/login" />} 
         />
         <Route 
           path="/inventory-checkouts" 
-          element={user ? <InventoryCheckouts /> : <Navigate to="/login" />} 
+          element={user ? <WithSidebar><InventoryCheckouts /></WithSidebar> : <Navigate to="/login" />} 
         />
 
         {/* DEFAULT: Send everyone to /login first */}

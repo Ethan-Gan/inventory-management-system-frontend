@@ -29,6 +29,64 @@
   font-size: 1rem;
 }
 
+/* Column visibility toggles */
+.column-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  background-color: #fff;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.column-toggles-label {
+  font-weight: bold;
+  color: #333;
+  margin-right: 0.25rem;
+}
+
+.column-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: grab;
+  user-select: none;
+  font-size: 0.9rem;
+  color: #333;
+  white-space: nowrap;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.15s, opacity 0.15s, box-shadow 0.15s;
+}
+
+.column-toggle:active {
+  cursor: grabbing;
+}
+
+.column-toggle:hover {
+  background-color: #f0f0f0;
+}
+
+.column-toggle-dragging {
+  opacity: 0.4;
+}
+
+/* Blue drop indicator on the pill being hovered during a drag */
+.column-toggle-drag-over {
+  box-shadow: inset 3px 0 0 0 #4a9eff;
+  background-color: #eaf4ff;
+}
+
+.column-toggle input {
+  cursor: pointer;
+  width: 1rem;
+  height: 1rem;
+  accent-color: #000;
+}
+
 .add-btn {
   background-color: #000;
   color: #fff;
@@ -87,9 +145,26 @@
 }
 
 table {
-  width: 100%;
   border-collapse: collapse;
-  min-width: 800px;
+  min-width: 100%;
+  /* Fixed layout: column widths come from the explicit per-column widths
+     (set via TanStack's getSize), so cell content never recalculates them.
+     This is what keeps columns from jumping when you edit a cell, and lets
+     the drag-resizers control the widths. */
+  table-layout: fixed;
+}
+
+/* Keep long text (URLs, etc.) from forcing a column wider.
+   Clip on td only; th stays overflow-visible so its right-edge resize
+   handle is never clipped away. */
+td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+th {
+  white-space: nowrap;
 }
 
 thead {
@@ -101,12 +176,69 @@ th {
   padding: 1rem;
   text-align: left;
   font-weight: bold;
-  cursor: pointer;
   user-select: none;
+  position: relative;
+  cursor: pointer;
+}
+
+.th-content {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+  pointer-events: none;
 }
 
 th:hover {
   background-color: #333;
+}
+
+/* Column drag-to-reorder states */
+.th-draggable {
+  cursor: grab;
+}
+
+.th-draggable:active {
+  cursor: grabbing;
+}
+
+.th-dragging {
+  opacity: 0.4;
+}
+
+/* Blue drop indicator on the column being hovered during a drag */
+.th-drag-over {
+  box-shadow: inset 3px 0 0 0 #4a9eff;
+  background-color: #333;
+}
+
+/* Draggable column divider - always visible at 30% opacity.
+   Nudged 2px inside the right edge so it is never clipped and sits
+   centered on the boundary for an easy grab target. */
+.col-resizer {
+  position: absolute;
+  top: 0;
+  right: -1px;
+  height: 100%;
+  width: 5px;
+  background-color: #fff;
+  opacity: 0.3;
+  cursor: col-resize;
+  user-select: none;
+  touch-action: none;
+  transition: opacity 0.15s;
+  z-index: 1;
+}
+
+th:hover .col-resizer {
+  opacity: 0.6;
+}
+
+.col-resizer:hover,
+.col-resizer.is-resizing {
+  opacity: 1;
 }
 
 td {

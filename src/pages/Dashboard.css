@@ -30,7 +30,7 @@
   padding: 0.5rem 1rem;
   cursor: pointer;
   font-weight: bold;
-  /* border-radius: 4px; */
+  border-radius: 4px;
 }
 
 .logout-btn:hover {
@@ -54,9 +54,8 @@
 .nav-card {
   background-color: #fff;
   border-color: #000;
-  /* padding: 2rem; */
-  padding:02rem;
-  /* border-radius: 8px; */
+  padding: 2rem;
+  border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   text-decoration: none;
   color: #333;

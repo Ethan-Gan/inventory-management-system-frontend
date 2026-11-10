@@ -5,12 +5,14 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  flexRender,
 } from '@tanstack/react-table';
+import DataTable from '../components/DataTable';
 import './TablePage.css';
 
 const PurchaseRequests = () => {
   const [data, setData] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [globalFilter, setGlobalFilter] = useState('');
@@ -38,9 +40,34 @@ const PurchaseRequests = () => {
     }
   };
 
+  // Load referenced records so we can show names instead of raw IDs.
+  const fetchLookups = async () => {
+    try {
+      const [suppliersRes, usersRes] = await Promise.all([
+        fetch(`${import.meta.env.VITE_API_URL}/suppliers`),
+        fetch(`${import.meta.env.VITE_API_URL}/users`),
+      ]);
+      setSuppliers(await suppliersRes.json());
+      setUsers(await usersRes.json());
+    } catch (err) {
+      // Non-fatal: fall back to showing the raw IDs.
+    }
+  };
+
   useEffect(() => {
     fetchData();
+    fetchLookups();
   }, []);
+
+  const supplierName = (id) => {
+    const supplier = suppliers.find((s) => s.id === id);
+    return supplier ? supplier.name : null;
+  };
+
+  const userName = (id) => {
+    const user = users.find((u) => u.id === id);
+    return user ? user.username : null;
+  };
 
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this purchase request?')) return;
@@ -200,52 +227,58 @@ const PurchaseRequests = () => {
     },
     {
       accessorKey: 'supplier_id',
-      header: 'Supplier ID',
+      header: 'Supplier',
       cell: ({ row, getValue }) => {
         const cellId = `${row.original.id}-supplier_id`;
         const isEditing = editingCell === cellId;
-        
+        const id = getValue();
+        const name = supplierName(id);
+
         return isEditing ? (
-          <input
-            type="number"
+          <select
             autoFocus
-            defaultValue={getValue()}
+            defaultValue={id ?? ''}
             onBlur={(e) => handleUpdate(row.original.id, 'supplier_id', parseInt(e.target.value))}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleUpdate(row.original.id, 'supplier_id', parseInt(e.target.value));
-              }
-            }}
-          />
+            onChange={(e) => handleUpdate(row.original.id, 'supplier_id', parseInt(e.target.value))}
+          >
+            {suppliers.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
         ) : (
           <div onClick={() => setEditingCell(cellId)} style={{ cursor: 'pointer' }}>
-            {getValue()}
+            {name || `#${id}`}
           </div>
         );
       },
     },
     {
       accessorKey: 'user_id',
-      header: 'User ID',
+      header: 'User',
       cell: ({ row, getValue }) => {
         const cellId = `${row.original.id}-user_id`;
         const isEditing = editingCell === cellId;
-        
+        const id = getValue();
+        const name = userName(id);
+
         return isEditing ? (
-          <input
-            type="number"
+          <select
             autoFocus
-            defaultValue={getValue()}
+            defaultValue={id ?? ''}
             onBlur={(e) => handleUpdate(row.original.id, 'user_id', parseInt(e.target.value))}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleUpdate(row.original.id, 'user_id', parseInt(e.target.value));
-              }
-            }}
-          />
+            onChange={(e) => handleUpdate(row.original.id, 'user_id', parseInt(e.target.value))}
+          >
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.username}
+              </option>
+            ))}
+          </select>
         ) : (
           <div onClick={() => setEditingCell(cellId)} style={{ cursor: 'pointer' }}>
-            {getValue()}
+            {name || `#${id}`}
           </div>
         );
       },
@@ -259,6 +292,8 @@ const PurchaseRequests = () => {
     {
       id: 'actions',
       header: 'Actions',
+      enableHiding: false,
+      enableResizing: false,
       cell: ({ row }) => (
         <button
           onClick={() => handleDelete(row.original.id)}
@@ -277,6 +312,8 @@ const PurchaseRequests = () => {
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    enableColumnResizing: true,
+    columnResizeMode: 'onChange',
     state: {
       globalFilter,
     },
@@ -342,93 +379,35 @@ const PurchaseRequests = () => {
             value={newRow.purchase_website_url}
             onChange={(e) => setNewRow({ ...newRow, purchase_website_url: e.target.value })}
           />
-          <input
-            type="number"
-            placeholder="Supplier ID"
+          <select
             value={newRow.supplier_id}
             onChange={(e) => setNewRow({ ...newRow, supplier_id: e.target.value })}
             required
-          />
-          <input
-            type="number"
-            placeholder="User ID"
+          >
+            <option value="">Select Supplier</option>
+            {suppliers.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+          <select
             value={newRow.user_id}
             onChange={(e) => setNewRow({ ...newRow, user_id: e.target.value })}
             required
-          />
+          >
+            <option value="">Select User</option>
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.username}
+              </option>
+            ))}
+          </select>
           <button type="submit">Create Request</button>
         </form>
       )}
 
-      <div className="table-container">
-        <table>
-          <thead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th key={header.id} onClick={header.column.getToggleSortingHandler()}>
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                    {header.column.getIsSorted() && (
-                      <span>{header.column.getIsSorted() === 'asc' ? ' 🔼' : ' 🔽'}</span>
-                    )}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="pagination">
-        <button
-          onClick={() => table.setPageIndex(0)}
-          disabled={!table.getCanPreviousPage()}
-        >
-          {'<<'}
-        </button>
-        <button
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          {'<'}
-        </button>
-        <span>
-          Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-        </span>
-        <button
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          {'>'}
-        </button>
-        <button
-          onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-          disabled={!table.getCanNextPage()}
-        >
-          {'>>'}
-        </button>
-        <select
-          value={table.getState().pagination.pageSize}
-          onChange={(e) => table.setPageSize(Number(e.target.value))}
-        >
-          {[10, 20, 30, 40, 50].map((pageSize) => (
-            <option key={pageSize} value={pageSize}>
-              Show {pageSize}
-            </option>
-          ))}
-        </select>
-      </div>
+      <DataTable table={table} />
     </div>
   );
 };

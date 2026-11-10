@@ -52,6 +52,7 @@ h1 {
   border: 1px solid #999;
   padding: 5px;
   width: 180px;
+  border-radius: 4px;
 }
 
 .error-msg {
@@ -71,6 +72,7 @@ h1 {
   font-weight: bold;
   font-size: 1rem;
   cursor: pointer;
+  border-radius: 4px;
   transition: all 0.2s ease; /* Smooth transition */
 }
 

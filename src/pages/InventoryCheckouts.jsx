@@ -5,12 +5,14 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  flexRender,
 } from '@tanstack/react-table';
+import DataTable from '../components/DataTable';
 import './TablePage.css';
 
 const InventoryCheckouts = () => {
   const [data, setData] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [globalFilter, setGlobalFilter] = useState('');
@@ -36,9 +38,34 @@ const InventoryCheckouts = () => {
     }
   };
 
+  // Load referenced records so we can show names instead of raw IDs.
+  const fetchLookups = async () => {
+    try {
+      const [usersRes, itemsRes] = await Promise.all([
+        fetch(`${import.meta.env.VITE_API_URL}/users`),
+        fetch(`${import.meta.env.VITE_API_URL}/inventory-items`),
+      ]);
+      setUsers(await usersRes.json());
+      setItems(await itemsRes.json());
+    } catch (err) {
+      // Non-fatal: fall back to showing the raw IDs.
+    }
+  };
+
   useEffect(() => {
     fetchData();
+    fetchLookups();
   }, []);
+
+  const userName = (id) => {
+    const user = users.find((u) => u.id === id);
+    return user ? user.username : null;
+  };
+
+  const itemName = (id) => {
+    const item = items.find((i) => i.id === id);
+    return item ? item.item_name : null;
+  };
 
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this checkout?')) return;
@@ -141,52 +168,58 @@ const InventoryCheckouts = () => {
     },
     {
       accessorKey: 'user_id',
-      header: 'User ID',
+      header: 'User',
       cell: ({ row, getValue }) => {
         const cellId = `${row.original.id}-user_id`;
         const isEditing = editingCell === cellId;
-        
+        const id = getValue();
+        const name = userName(id);
+
         return isEditing ? (
-          <input
-            type="number"
+          <select
             autoFocus
-            defaultValue={getValue()}
+            defaultValue={id ?? ''}
             onBlur={(e) => handleUpdate(row.original.id, 'user_id', parseInt(e.target.value))}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleUpdate(row.original.id, 'user_id', parseInt(e.target.value));
-              }
-            }}
-          />
+            onChange={(e) => handleUpdate(row.original.id, 'user_id', parseInt(e.target.value))}
+          >
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.username}
+              </option>
+            ))}
+          </select>
         ) : (
           <div onClick={() => setEditingCell(cellId)} style={{ cursor: 'pointer' }}>
-            {getValue()}
+            {name || `#${id}`}
           </div>
         );
       },
     },
     {
       accessorKey: 'item_id',
-      header: 'Item ID',
+      header: 'Item',
       cell: ({ row, getValue }) => {
         const cellId = `${row.original.id}-item_id`;
         const isEditing = editingCell === cellId;
-        
+        const id = getValue();
+        const name = itemName(id);
+
         return isEditing ? (
-          <input
-            type="number"
+          <select
             autoFocus
-            defaultValue={getValue()}
+            defaultValue={id ?? ''}
             onBlur={(e) => handleUpdate(row.original.id, 'item_id', parseInt(e.target.value))}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleUpdate(row.original.id, 'item_id', parseInt(e.target.value));
-              }
-            }}
-          />
+            onChange={(e) => handleUpdate(row.original.id, 'item_id', parseInt(e.target.value))}
+          >
+            {items.map((i) => (
+              <option key={i.id} value={i.id}>
+                {i.item_name}
+              </option>
+            ))}
+          </select>
         ) : (
           <div onClick={() => setEditingCell(cellId)} style={{ cursor: 'pointer' }}>
-            {getValue()}
+            {name || `#${id}`}
           </div>
         );
       },
@@ -227,6 +260,8 @@ const InventoryCheckouts = () => {
     {
       id: 'actions',
       header: 'Actions',
+      enableHiding: false,
+      enableResizing: false,
       cell: ({ row }) => (
         <button
           onClick={() => handleDelete(row.original.id)}
@@ -245,6 +280,8 @@ const InventoryCheckouts = () => {
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    enableColumnResizing: true,
+    columnResizeMode: 'onChange',
     state: {
       globalFilter,
     },
@@ -287,20 +324,30 @@ const InventoryCheckouts = () => {
             value={newRow.description}
             onChange={(e) => setNewRow({ ...newRow, description: e.target.value })}
           />
-          <input
-            type="number"
-            placeholder="User ID"
+          <select
             value={newRow.user_id}
             onChange={(e) => setNewRow({ ...newRow, user_id: e.target.value })}
             required
-          />
-          <input
-            type="number"
-            placeholder="Item ID"
+          >
+            <option value="">Select User</option>
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.username}
+              </option>
+            ))}
+          </select>
+          <select
             value={newRow.item_id}
             onChange={(e) => setNewRow({ ...newRow, item_id: e.target.value })}
             required
-          />
+          >
+            <option value="">Select Item</option>
+            {items.map((i) => (
+              <option key={i.id} value={i.id}>
+                {i.item_name}
+              </option>
+            ))}
+          </select>
           <input
             type="datetime-local"
             placeholder="Returned At (optional)"
@@ -311,75 +358,7 @@ const InventoryCheckouts = () => {
         </form>
       )}
 
-      <div className="table-container">
-        <table>
-          <thead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th key={header.id} onClick={header.column.getToggleSortingHandler()}>
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                    {header.column.getIsSorted() && (
-                      <span>{header.column.getIsSorted() === 'asc' ? ' 🔼' : ' 🔽'}</span>
-                    )}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="pagination">
-        <button
-          onClick={() => table.setPageIndex(0)}
-          disabled={!table.getCanPreviousPage()}
-        >
-          {'<<'}
-        </button>
-        <button
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          {'<'}
-        </button>
-        <span>
-          Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-        </span>
-        <button
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          {'>'}
-        </button>
-        <button
-          onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-          disabled={!table.getCanNextPage()}
-        >
-          {'>>'}
-        </button>
-        <select
-          value={table.getState().pagination.pageSize}
-          onChange={(e) => table.setPageSize(Number(e.target.value))}
-        >
-          {[10, 20, 30, 40, 50].map((pageSize) => (
-            <option key={pageSize} value={pageSize}>
-              Show {pageSize}
-            </option>
-          ))}
-        </select>
-      </div>
+      <DataTable table={table} />
     </div>
   );
 };
